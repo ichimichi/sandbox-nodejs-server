@@ -51,9 +51,34 @@ export const removeOne = (model) => async (req, res) => {
   }
 };
 
+export const updateOne = (model) => async (req, res) => {
+  try {
+    const updatedDoc = await model
+      .findOneAndUpdate(
+        {
+          _id: req.params.id,
+        },
+        req.body,
+        { new: true }
+      )
+      .lean()
+      .exec();
+
+    if (!updatedDoc) {
+      return res.status(400).end();
+    }
+
+    res.status(200).json(updatedDoc);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
 export const crudControllers = (model) => ({
   removeOne: removeOne(model),
   getAll: getAll(model),
   getOne: getOne(model),
   createOne: createOne(model),
+  updateOne: updateOne(model),
 });
