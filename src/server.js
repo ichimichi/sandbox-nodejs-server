@@ -4,6 +4,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import { connect } from './utils/db';
 import userRouter from './res/user/user.router';
+import itemRouter from './res/item/item.router';
 
 export const app = express();
 
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', userRouter);
+app.use('/item', itemRouter);
 
 export const start = async () => {
   try {
