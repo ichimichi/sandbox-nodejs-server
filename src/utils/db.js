@@ -9,5 +9,6 @@ export const connect = (
     ...opts,
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useFindAndModify: false,
   });
 };
