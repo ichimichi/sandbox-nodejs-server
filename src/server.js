@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import { connect } from './utils/db';
 
 export const app = express();
 
@@ -20,8 +21,13 @@ app.get('/', (req, res) => {
   res.send('hello');
 });
 
-export const start = () => {
-  app.listen(process.env.PORT, () => {
-    console.log(`listening on port ${process.env.PORT}`);
-  });
+export const start = async () => {
+  try {
+    await connect();
+    app.listen(process.env.PORT, () => {
+      console.log(`listening on port ${process.env.PORT}`);
+    });
+  } catch (e) {
+    console.error(e);
+  }
 };
