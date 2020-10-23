@@ -1,27 +1,10 @@
 import { Router } from 'express';
-import { Item } from './item.model';
+import controllers from './item.controllers';
 
 const router = Router();
 
-router
-  .route('/')
-  .get(async (req, res) => {
-    try {
-      const items = await Item.find();
-      res.status(200).json(items);
-    } catch (e) {
-      console.error(e);
-      res.status(400).end();
-    }
-  })
-  .post(async (req, res) => {
-    try {
-      const createdItem = await Item.create(req.body);
-      res.status(201).json(createdItem);
-    } catch (e) {
-      console.error(e);
-      res.status(400).end();
-    }
-  });
+router.route('/').get(controllers.getAll).post(controllers.createOne);
+
+router.route('/:id').get(controllers.getOne).delete(controllers.removeOne);
 
 export default router;
