@@ -4,7 +4,8 @@ import { User } from './user.model';
 const router = Router();
 
 router
-  .get('/', async (req, res) => {
+  .route('/')
+  .get(async (req, res) => {
     try {
       const users = await User.find();
       res.status(200).json(users);
@@ -13,7 +14,7 @@ router
       res.status(400).end();
     }
   })
-  .post('/', async (req, res) => {
+  .post(async (req, res) => {
     try {
       const createdUser = await User.create(req.body);
       res.status(201).json(createdUser);
