@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { updateOne } from '../../utils/crud';
 import controllers from './item.controllers';
 
 const router = Router();
