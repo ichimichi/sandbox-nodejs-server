@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { connect } from './utils/db';
 import userRouter from './res/user/user.router';
 import itemRouter from './res/item/item.router';
+import { protect, signin, signup } from './utils/auth';
 
 export const app = express();
 
@@ -23,8 +24,11 @@ app.get('/', (req, res) => {
   res.send('hello');
 });
 
-app.use('/user', userRouter);
-app.use('/item', itemRouter);
+app.post('/signup', signup);
+app.post('/signin', signin);
+app.use('/api', protect);
+app.use('/api/user', userRouter);
+app.use('/api/item', itemRouter);
 
 export const start = async () => {
   try {
