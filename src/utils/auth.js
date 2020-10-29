@@ -74,7 +74,8 @@ export const protect = async (req, res, next) => {
   try {
     payload = await verifyToken(token);
   } catch (e) {
-    return response.status(401).end();
+    console.error(e);
+    return res.status(401).end();
   }
   const user = await User.findById(payload.id)
     .select('-password')
