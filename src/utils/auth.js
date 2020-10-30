@@ -74,7 +74,8 @@ export const signin = async (req, res) => {
     res.cookie('refresh_token', refreshToken, {
       maxAge: process.env.JWT_REFRESH_EXP * 60 * 1000,
       httpOnly: true,
-      secure: false,
+      secure: true,
+      sameSite: 'strict',
     });
     return res.status(201).json({ accessToken, accessTokenExp });
   } catch (e) {
@@ -134,9 +135,10 @@ export const refreshAccessToken = async (req, res) => {
   const accessToken = newAccessToken(user);
   const refreshTokenNew = newRefreshToken(user);
   res.cookie('refresh_token', refreshTokenNew, {
-    maxAge: process.env.JWT_REFRESH_EXP * 60 * 1000, // convert from minute to milliseconds
+    maxAge: process.env.JWT_REFRESH_EXP * 60 * 1000,
     httpOnly: true,
-    secure: false,
+    secure: true,
+    sameSite: 'strict',
   });
   return res.status(201).json({ accessToken, accessTokenExp });
 };
