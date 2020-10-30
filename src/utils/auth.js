@@ -88,7 +88,12 @@ export const signin = async (req, res) => {
 };
 
 export const protect = async (req, res, next) => {
+  if (!req.cookies['payload'] || !req.cookies['signature']) {
+    return res.status(401).end();
+  }
+
   const token = `${req.cookies['payload']}.${req.cookies['signature'][0]}`;
+
   let payload;
   try {
     payload = await verifyAccessToken(token);
