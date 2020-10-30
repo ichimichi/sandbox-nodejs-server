@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import { response } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../res/user/user.model';
 
@@ -25,12 +24,21 @@ export const signup = async (req, res) => {
   try {
     const user = await User.create(req.body);
     const accessToken = newAccessToken(user);
-    res.cookie('access_token', accessToken, {
-      maxAge: process.env.JWT_ACCESS_EXP * 60 * 1000,
+    res.cookie('signature', accessToken.split('.').splice(2, 1), {
+      maxAge: process.env.SESSION_COOKIE_EXP * 60 * 1000,
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
     });
+    res.cookie(
+      'payload',
+      accessToken.split('.')[0] + accessToken.split('.').splice(0, 2).join('.'),
+      {
+        maxAge: process.env.PERMANENT_COOKIE_EXP * 60 * 1000,
+        secure: true,
+        sameSite: 'strict',
+      }
+    );
     res.status(200).end();
   } catch (e) {
     console.error(e);
@@ -61,8 +69,13 @@ export const signin = async (req, res) => {
     }
 
     const accessToken = newAccessToken(user);
-    res.cookie('access_token', accessToken, {
-      maxAge: process.env.JWT_ACCESS_EXP * 60 * 1000,
+    res.cookie('payload', accessToken.split('.').splice(0, 2).join('.'), {
+      maxAge: process.env.PERMANENT_COOKIE_EXP * 60 * 1000,
+      secure: true,
+      sameSite: 'strict',
+    });
+    res.cookie('signature', accessToken.split('.').splice(2, 1), {
+      maxAge: process.env.SESSION_COOKIE_EXP * 60 * 1000,
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
@@ -75,14 +88,14 @@ export const signin = async (req, res) => {
 };
 
 export const protect = async (req, res, next) => {
-  const token = req.cookies['access_token'];
-
+  const token = `${req.cookies['payload']}.${req.cookies['signature'][0]}`;
   let payload;
   try {
     payload = await verifyAccessToken(token);
   } catch (e) {
     return res.status(401).end();
   }
+
   const user = await User.findById(payload.id)
     .select('-password')
     .lean()
