@@ -24,21 +24,17 @@ export const signup = async (req, res) => {
   try {
     const user = await User.create(req.body);
     const accessToken = newAccessToken(user);
+    res.cookie('payload', accessToken.split('.').splice(0, 2).join('.'), {
+      maxAge: process.env.PERMANENT_COOKIE_EXP * 60 * 1000,
+      secure: true,
+      sameSite: 'strict',
+    });
     res.cookie('signature', accessToken.split('.').splice(2, 1), {
       maxAge: process.env.SESSION_COOKIE_EXP * 60 * 1000,
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
     });
-    res.cookie(
-      'payload',
-      accessToken.split('.')[0] + accessToken.split('.').splice(0, 2).join('.'),
-      {
-        maxAge: process.env.PERMANENT_COOKIE_EXP * 60 * 1000,
-        secure: true,
-        sameSite: 'strict',
-      }
-    );
     res.status(200).end();
   } catch (e) {
     console.error(e);
