@@ -9,23 +9,9 @@ export const newAccessToken = (user) => {
   });
 };
 
-export const newRefreshToken = (user) => {
-  return jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXP * 60 * 1000,
-  });
-};
-
 export const verifyAccessToken = (token) =>
   new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, payload) => {
-      if (err) return reject(err);
-      resolve(payload);
-    });
-  });
-
-export const verifyRefreshToken = (token) =>
-  new Promise((resolve, reject) => {
-    jwt.verify(token, process.env.JWT_REFRESH_SECRET, (err, payload) => {
       if (err) return reject(err);
       resolve(payload);
     });
@@ -38,8 +24,14 @@ export const signup = async (req, res) => {
 
   try {
     const user = await User.create(req.body);
-    const token = newToken(user);
-    return res.status(201).json({ token });
+    const accessToken = newAccessToken(user);
+    res.cookie('access_token', accessToken, {
+      maxAge: process.env.JWT_ACCESS_EXP * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+    res.status(200).end();
   } catch (e) {
     console.error(e);
     return res.status(400).end();
@@ -68,16 +60,14 @@ export const signin = async (req, res) => {
       return res.status(401).json(invalid);
     }
 
-    const accessTokenExp = process.env.JWT_ACCESS_EXP;
     const accessToken = newAccessToken(user);
-    const refreshToken = newRefreshToken(user);
-    res.cookie('refresh_token', refreshToken, {
-      maxAge: process.env.JWT_REFRESH_EXP * 60 * 1000,
+    res.cookie('access_token', accessToken, {
+      maxAge: process.env.JWT_ACCESS_EXP * 60 * 1000,
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
     });
-    return res.status(201).json({ accessToken, accessTokenExp });
+    res.status(200).end();
   } catch (e) {
     console.error(e);
     res.status(500).end();
@@ -85,13 +75,8 @@ export const signin = async (req, res) => {
 };
 
 export const protect = async (req, res, next) => {
-  const bearer = req.headers.authorization;
+  const token = req.cookies['access_token'];
 
-  if (!bearer || !bearer.startsWith('Bearer ')) {
-    return res.status(401).end();
-  }
-
-  const token = bearer.split('Bearer ')[1].trim();
   let payload;
   try {
     payload = await verifyAccessToken(token);
@@ -109,36 +94,4 @@ export const protect = async (req, res, next) => {
 
   req.user = user;
   next();
-};
-
-export const refreshAccessToken = async (req, res) => {
-  const refreshToken = req.cookies['refresh_token'];
-  let payload;
-  try {
-    payload = await verifyRefreshToken(refreshToken);
-  } catch (e) {
-    console.error(e);
-    return res.status(401).end();
-  }
-
-  const user = await User.findById(payload.id)
-    .select('-password')
-    .lean()
-    .exec();
-
-  if (!user) {
-    return res.status(401).end();
-  }
-
-  user.id = user._id; //important
-  const accessTokenExp = process.env.JWT_ACCESS_EXP;
-  const accessToken = newAccessToken(user);
-  const refreshTokenNew = newRefreshToken(user);
-  res.cookie('refresh_token', refreshTokenNew, {
-    maxAge: process.env.JWT_REFRESH_EXP * 60 * 1000,
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-  });
-  return res.status(201).json({ accessToken, accessTokenExp });
 };

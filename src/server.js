@@ -8,8 +8,9 @@ import morgan from 'morgan';
 import { connect } from './utils/db';
 import userRouter from './res/user/user.router';
 import itemRouter from './res/item/item.router';
-import { protect, refreshAccessToken, signin, signup } from './utils/auth';
+import { protect, signin, signup } from './utils/auth';
 import cookieParser from 'cookie-parser';
+import { logger } from './utils/logger';
 
 var certificate = fs.readFileSync(
   path.join(__dirname, 'sslcert/localhost+2.pem'),
@@ -23,18 +24,15 @@ var privateKey = fs.readFileSync(
 var credentials = { key: privateKey, cert: certificate };
 
 export const app = express();
-
 const httpsServer = https.createServer(credentials, app);
 
 app.disable('x-powered-by');
-app.use(cookieParser());
 app.use(
   cors({
     origin: 'http://127.0.0.1:3000',
     credentials: true,
   })
 );
-
 app.use(function (req, res, next) {
   res.header('Content-Type', 'application/json;charset=UTF-8');
   res.header('Access-Control-Allow-Credentials', true);
@@ -45,6 +43,7 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -53,19 +52,14 @@ app.use(
 );
 
 app.use(morgan('dev'));
-app.use((req, res, next) => {
-  console.log(req.cookies);
-  console.log(req.body);
-  next();
-});
+// app.use(logger);
 
 app.get('/', (req, res) => {
-  res.send('hello');
+  res.json('hello');
 });
 
 app.post('/signup', signup);
 app.post('/signin', signin);
-app.post('/refresh_token', refreshAccessToken);
 app.use('/api', protect);
 app.use('/api/user', userRouter);
 app.use('/api/item', itemRouter);
@@ -74,7 +68,9 @@ export const start = async () => {
   try {
     await connect();
     httpsServer.listen(process.env.PORT, () => {
-      console.log(`listening on port ${process.env.PORT}`);
+      console.log(
+        `listening on port ${process.env.PORT} : https://127.0.0.1:${process.env.PORT}`
+      );
     });
   } catch (e) {
     console.error(e);
