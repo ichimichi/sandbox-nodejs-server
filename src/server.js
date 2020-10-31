@@ -8,7 +8,7 @@ import morgan from 'morgan';
 import { connect } from './utils/db';
 import userRouter from './res/user/user.router';
 import itemRouter from './res/item/item.router';
-import { protect, signin, signup } from './utils/auth';
+import { protect, reAuth, signin, signup } from './utils/auth';
 import cookieParser from 'cookie-parser';
 import { logger } from './utils/logger';
 
@@ -61,6 +61,7 @@ app.get('/', (req, res) => {
 app.post('/signup', signup);
 app.post('/signin', signin);
 app.use('/api', protect);
+app.use('/api', reAuth);
 app.use('/api/user', userRouter);
 app.use('/api/item', itemRouter);
 
