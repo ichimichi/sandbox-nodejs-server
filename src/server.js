@@ -10,6 +10,7 @@ import userRouter from './res/user/user.router';
 import itemRouter from './res/item/item.router';
 import { protect, reAuth, signin, signup } from './utils/auth';
 import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
 import { logger } from './utils/logger';
 
 var certificate = fs.readFileSync(
@@ -23,6 +24,11 @@ var privateKey = fs.readFileSync(
 
 var credentials = { key: privateKey, cert: certificate };
 
+const xsrfProtection = csrf({
+  cookie: true,
+  secure: true,
+  sameSite: 'strict',
+});
 export const app = express();
 const httpsServer = https.createServer(credentials, app);
 
@@ -54,16 +60,17 @@ app.use(
 app.use(morgan('dev'));
 // app.use(logger);
 
-app.get('/', (req, res) => {
-  res.json('hello');
+app.get('/', xsrfProtection, (req, res) => {
+  res.cookie('XSRF-TOKEN', req.csrfToken());
+  res.status(200).end();
 });
 
 app.post('/signup', signup);
-app.post('/signin', signin);
+app.post('/signin', xsrfProtection, signin);
 app.use('/api', protect);
 app.use('/api', reAuth);
 app.use('/api/user', userRouter);
-app.use('/api/item', itemRouter);
+app.use('/api/item', xsrfProtection, itemRouter);
 
 export const start = async () => {
   try {
