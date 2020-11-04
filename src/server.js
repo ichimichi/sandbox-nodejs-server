@@ -22,23 +22,33 @@ var privateKey = fs.readFileSync(
   'utf8'
 );
 
-var credentials = { key: privateKey, cert: certificate };
-
 const xsrfProtection = csrf({
   cookie: true,
   secure: true,
   sameSite: 'strict',
 });
 export const app = express();
-const httpsServer = https.createServer(credentials, app);
+const httpsServer = https.createServer(
+  { key: privateKey, cert: certificate },
+  app
+);
 
 app.disable('x-powered-by');
 app.use(
   cors({
     origin: 'https://127.0.0.1:3000',
+    methods: ['GET', 'PUT', 'POST', 'DELETE'],
+    allowedHeaders: [
+      'Origin',
+      'Content-Type',
+      'X-Requested-With',
+      'Accept',
+      'x-xsrf-token',
+    ],
     credentials: true,
   })
 );
+
 app.use(function (req, res, next) {
   res.header('Content-Type', 'application/json;charset=UTF-8');
   res.header('Access-Control-Allow-Credentials', true);

@@ -4,7 +4,7 @@ import { User } from '../res/user/user.model';
 
 export const newAccessToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_EXP,
+    expiresIn: process.env.JWT_ACCESS_EXP * 60 * 1000,
   });
 };
 
