@@ -3,7 +3,7 @@ import controllers from './item.controllers';
 
 const router = Router();
 
-router.route('/').get(controllers.getAll).post(controllers.createOne);
+router.route('/').get(controllers.getPage).post(controllers.createOne);
 
 router
   .route('/:id')

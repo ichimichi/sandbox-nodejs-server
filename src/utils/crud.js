@@ -24,6 +24,26 @@ export const getAll = (model) => async (req, res) => {
   }
 };
 
+const getPagination = (page, size) => {
+  const limit = size ? +size : 4;
+  const offset = page ? page * limit : 0;
+
+  return { limit, offset };
+};
+
+export const getPage = (model) => async (req, res) => {
+  const { page } = req.query;
+  const { limit, offset } = getPagination(page);
+  try {
+    const docs = await model.paginate({}, { offset, limit });
+
+    res.status(200).json(docs);
+  } catch (e) {
+    console.error(e);
+    res.status(400).end();
+  }
+};
+
 export const createOne = (model) => async (req, res) => {
   try {
     const doc = await model.create({ ...req.body });
@@ -79,6 +99,7 @@ export const crudControllers = (model) => ({
   removeOne: removeOne(model),
   getAll: getAll(model),
   getOne: getOne(model),
+  getPage: getPage(model),
   createOne: createOne(model),
   updateOne: updateOne(model),
 });
