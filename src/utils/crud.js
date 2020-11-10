@@ -26,7 +26,7 @@ export const getAll = (model) => async (req, res) => {
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 4;
-  const offset = page ? page * limit : 0;
+  const offset = page ? page * limit - limit : 0;
 
   return { limit, offset };
 };
