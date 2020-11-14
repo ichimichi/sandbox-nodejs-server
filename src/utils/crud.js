@@ -26,14 +26,15 @@ export const getAll = (model) => async (req, res) => {
 
 const getPagination = (page, size) => {
   const limit = size ? +size : 4;
-  const offset = page ? page * limit - limit : 0;
+  const offset = page ? page * limit : 0;
 
   return { limit, offset };
 };
 
 export const getPage = (model) => async (req, res) => {
-  const { page } = req.query;
-  const { limit, offset } = getPagination(page);
+  const { page, perpage } = req.query;
+  const { limit, offset } = getPagination(page, perpage);
+
   try {
     const docs = await model.paginate({}, { offset, limit });
 
