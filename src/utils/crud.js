@@ -46,8 +46,10 @@ export const getPage = (model) => async (req, res) => {
 };
 
 export const createOne = (model) => async (req, res) => {
+  const createdBy = req.user._id;
+
   try {
-    const doc = await model.create({ ...req.body });
+    const doc = await model.create({ ...req.body, createdBy });
     res.status(201).json(doc);
   } catch (e) {
     console.error(e);
